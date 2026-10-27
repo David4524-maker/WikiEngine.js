@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Proyecto con WikiEngine</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background-color: #f4f6f9;
+      color: #333;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .search-container {
+      margin-bottom: 30px;
+    }
+    input {
+      padding: 10px 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px 0 0 4px;
+      outline: none;
+      width: 250px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #3366cc;
+      color: white;
+      border: none;
+      border-radius: 0 4px 4px 0;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #254c9e;
+    }
+    /* Tarjeta donde se mostrará el resultado */
+    .wiki-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+      overflow: hidden;
+      display: none; /* Se oculta hasta que haya datos */
+    }
+    .wiki-card img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+    }
+    .wiki-content {
+      padding: 20px;
+    }
+    .wiki-title {
+      margin: 0 0 5px 0;
+      font-size: 24px;
+    }
+    .wiki-desc {
+      color: #666;
+      font-style: italic;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+    .wiki-text {
+      line-height: 1.6;
+      font-size: 15px;
+    }
+    .wiki-link {
+      display: inline-block;
+      margin-top: 15px;
+      color: #3366cc;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .error-msg {
+      color: #dc3545;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-container">
+    <input type="text" id="wikiSearch" placeholder="Busca en Wikipedia...">
+    <button id="searchBtn">Buscar</button>
+  </div>
+
+  <!-- Contenedor del resultado -->
+  <div id="resultCard" class="wiki-card">
+    <img id="wikiImage" src="" alt="Imagen del artículo" style="display: none;">
+    <div class="wiki-content">
+      <h2 id="wikiTitle" class="wiki-title"></h2>
+      <div id="wikiDesc" class="wiki-desc"></div>
+      <p id="wikiText" class="wiki-text"></p>
+      <a id="wikiLink" class="wiki-link" href="#" target="_blank">Leer artículo completo →</a>
+    </div>
+  </div>
+
+  <div id="errorContainer" class="error-msg"></div>
+
+  <!-- Lógica para conectar tu librería con la pantalla -->
+  <script type="module">
+    import { WikiEngine } from './WikiEngine.js';
+
+    // Instanciamos el motor en español
+    const wiki = new WikiEngine('es');
+
+    const searchInput = document.getElementById('wikiSearch');
+    const searchBtn = document.getElementById('searchBtn');
+    const card = document.getElementById('resultCard');
+    const errorContainer = document.getElementById('errorContainer');
+
+    searchBtn.addEventListener('click', async () => {
+      const query = searchInput.value;
+      if (!query) return;
+
+      // Limpiar estados anteriores
+      card.style.display = 'none';
+      errorContainer.innerText = '';
+
+      try {
+        // Buscamos los datos usando tu librería
+        const articulo = await wiki.getArticle(query);
+
+        // Inyectamos las respuestas en el HTML
+        document.getElementById('wikiTitle').innerText = articulo.title;
+        document.getElementById('wikiDesc').innerText = articulo.description || '';
+        document.getElementById('wikiText').innerText = articulo.extract;
+        document.getElementById('wikiLink').href = articulo.url;
+
+        // Manejar la imagen (algunos artículos no tienen imagen)
+        const imgNode = document.getElementById('wikiImage');
+        if (articulo.image) {
+          imgNode.src = articulo.image;
+          imgNode.style.display = 'block';
+        } else {
+          imgNode.style.display = 'none';
+        }
+
+        // Mostrar la tarjeta con una animación o cambio de estilo básico
+        card.style.display = 'block';
+
+      } catch (error) {
+        errorContainer.innerText = error.message;
+      }
+    });
+  </script>
+</body>
+</html>
